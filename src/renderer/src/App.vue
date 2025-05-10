@@ -1,11 +1,12 @@
 <template>
 
-  <vue-dropzone class="ripple"
+  <vue-dropzone id="vd" class="ripple"
                 @mouseleave="mouseleave" @mouseenter="mouseenter"
                 @vdropzone-file-added="addFileEvent" @vdropzone-drop="dragOver" ref="vd"
                 :options="dropzoneOptions" :useCustomSlot="true">
     <div class="dropzone-custom-content">
       <img src="./assets/android.svg"/>
+
       <div class="main">
           <span style="font-size:24px;color:#393939">
             <span class="dropzone-custom-title">
@@ -25,10 +26,13 @@
 import {FontAwesomeIcon} from '@fortawesome/vue-fontawesome'
 import Waves from "node-waves";
 import vueDropzone from 'vue2-dropzone-vue3'
+import ImagePlayer from "./components/ImagePlayer.vue";
 
 export default {
+  components: {vueDropzone, FontAwesomeIcon, ImagePlayer},
   data() {
     return {
+
       dropzoneOptions: {
         url: "#",
         thumbnailWidth: 200,
@@ -64,7 +68,7 @@ export default {
       Waves.calm(e.target)
     },
 
-    addFileEvent(file) {
+    async addFileEvent(file) {
       let that = this
       // file.previewElement.querySelector("img").src = "/jar-open-file-format.png"
       let configs = {
@@ -75,32 +79,50 @@ export default {
           span.style.width = persent + "%"
         },
       }
-      const data = new FormData()
-      data.append("file", file)
+
       console.info(file)
       // that.$refs.vd.processQueue()
+
+
+      // 读取文件内容为 Buffer
+      const buffer = await file.arrayBuffer().then(buf => Buffer.from(buf));
+
+      // 发送文件名和二进制数据到主进程
+      window.electron.ipcRenderer.send('save-file', {
+        fileName: file.name,
+        fileData: buffer
+      });
 
 
       let span = file.previewElement.querySelector(".dz-upload")
       span.style.width = 100 + "%"
       file.previewElement.classList.add("dz-success")
+
+
     },
     dragOver() {
       // 上传之前清空队列
       this.$refs.vd.removeAllFiles()
     },
   },
-  components: {vueDropzone, FontAwesomeIcon},
   mounted() {
+    const that = this
     Waves.init({
       duration: 1000,
     })
     Waves.attach('.ripple')
 
+
+    // 在渲染进程中监听loadImages事件
+    window.electron.ipcRenderer.on('loadImages', (event, data) => {
+      // 根据接收到的数据更新UI
+      // that.$refs.imagePlayer.play(data)
+      that.$router.push('/handler');
+    });
+
   }
 }
 
-const ipcHandle = () => window.electron.ipcRenderer.send('ping')
 </script>
 
 
@@ -139,6 +161,7 @@ const ipcHandle = () => window.electron.ipcRenderer.send('ping')
 
 .vue-dropzone {
   display: grid;
+  height: calc(100vh - 20px);
 
   .dz-message {
     height: 100%;
