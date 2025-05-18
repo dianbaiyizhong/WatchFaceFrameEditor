@@ -16,9 +16,9 @@
     </v-main>
 
     <v-footer color="surface-light" name="footer" app>
-      <v-btn class="mt-2" color="primary">确定修改</v-btn>
+      <v-btn class="mt-2" color="primary" @click="updateFrameRate">确定修改</v-btn>
       &nbsp; &nbsp; &nbsp;
-      <v-btn class="mt-2" type="submit">返回</v-btn>
+      <v-btn class="mt-2" type="submit" @click="back">返回</v-btn>
 
     </v-footer>
   </v-layout>
@@ -28,6 +28,8 @@
 
 <script>
 import ImagePlayer from "./components/ImagePlayer.vue";
+import {useRoute} from 'vue-router';
+
 
 export default {
   components: {
@@ -36,9 +38,37 @@ export default {
   data() {
     return {
       formData: {
-        frameRate: 30
+        frameRate: 15
       },
     }
+  },
+  created() {
+    const that = this
+
+    //
+
+  },
+
+  methods: {
+    updateFrameRate() {
+      const that = this
+      that.$refs.imagePlayer.setFrameRate(this.formData.frameRate)
+
+
+    },
+    back() {
+      const that = this
+      const route = useRoute();
+      that.$refs.imagePlayer.stop()
+      window.history.back();
+
+    }
+  },
+  mounted() {
+    const that = this
+    // 在渲染进程中监听loadImages事件
+    const route = useRoute();
+    that.$refs.imagePlayer.play(route.query.imgs)
   }
 
 }

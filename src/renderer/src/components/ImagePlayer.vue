@@ -12,6 +12,10 @@ export default {
       frames: [],
       currentFrame: 0,
       rafId: null,
+      frameRate: 10,
+      timer: null,
+      images: null
+
     };
   },
   mounted() {
@@ -20,13 +24,27 @@ export default {
   methods: {
     loadFrames() {
     },
+    setFrameRate(frameRate) {
+      this.frameRate = frameRate
+      this.stop()
+      this.resume()
+    },
     play(images) {
+      const that = this
+      that.images = images
+
+      this.resume()
+
+    },
+
+    resume() {
+      const that = this
       this.currentFrame = 0
       let canvas = document.getElementById('animationCanvas');
       let ctx = this.$refs.canvas.getContext('2d');
       let imgPaths = []
-      for (let i = 0; i < images.length; i++) {
-        imgPaths.push("http://localhost:2408/?img=" + images[i])
+      for (let i = 0; i < this.images.length; i++) {
+        imgPaths.push("http://localhost:2408/?img=" + this.images[i])
       }
 
       let currentIndex = 0;
@@ -49,11 +67,13 @@ export default {
 
       // 控制帧率和动画循环,
       // 每秒帧数
-      const frameRate = 15;
-      setInterval(() => {
+      this.timer = setInterval(() => {
         loadImageAndDraw(currentIndex);
-      }, 1000 / frameRate);
+      }, 1000 / that.frameRate);
+    },
 
+    stop() {
+      clearInterval(this.timer)
     }
   },
 };

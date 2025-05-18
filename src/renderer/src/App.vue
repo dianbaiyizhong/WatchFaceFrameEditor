@@ -27,6 +27,7 @@ import {FontAwesomeIcon} from '@fortawesome/vue-fontawesome'
 import Waves from "node-waves";
 import vueDropzone from 'vue2-dropzone-vue3'
 import ImagePlayer from "./components/ImagePlayer.vue";
+import { useRouter } from "vue-router";
 
 export default {
   components: {vueDropzone, FontAwesomeIcon, ImagePlayer},
@@ -53,7 +54,6 @@ export default {
 
   methods: {
     mouseenter(e) {
-      console.info(e)
       Waves.ripple(e.target, {
         wait: 1000, position: {
           x: e.x, //px
@@ -80,7 +80,6 @@ export default {
         },
       }
 
-      console.info(file)
       // that.$refs.vd.processQueue()
 
 
@@ -111,14 +110,19 @@ export default {
       duration: 1000,
     })
     Waves.attach('.ripple')
+    const router = useRouter();
 
-
-    // 在渲染进程中监听loadImages事件
     window.electron.ipcRenderer.on('loadImages', (event, data) => {
       // 根据接收到的数据更新UI
-      // that.$refs.imagePlayer.play(data)
-      that.$router.push('/handler');
+
+      router.push({
+        name: 'Handler',
+        query: { imgs: data }
+      });
+
+
     });
+
 
   }
 }
